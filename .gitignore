@@ -3,3 +3,5 @@ venv/
 Mask_RCNN/logs/
 dataset_manga/train_original/
 dataset_manga/val_original/
+
+cloud_instructions.txt

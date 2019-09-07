@@ -5,6 +5,7 @@ from shutil import copyfile
 NAME1= 'train_original'
 NAME2= 'train'
 
+DATASET_DIR= "C:/Programming/Bubbles/dataset_manga/"
 
 def mirror(maskPath, seriesName, chapNum, NAME1, NAME2):
 	baseName= os.path.basename(os.path.splitext(maskPath)[0])
@@ -20,10 +21,10 @@ def mirror(maskPath, seriesName, chapNum, NAME1, NAME2):
 	rawDst = os.path.abspath(rawDst)
 
 	if not os.path.exists(os.path.dirname(maskDst)):
-		print('\tMaking ' + os.path.dirname(maskDst))
+		print('/tMaking ' + os.path.dirname(maskDst))
 		os.makedirs(os.path.dirname(maskDst))
 	if not os.path.exists(os.path.dirname(rawDst)):
-		print('\tMaking ' + os.path.dirname(rawDst))
+		print('/tMaking ' + os.path.dirname(rawDst))
 		os.makedirs(os.path.dirname(rawDst))
 
 	copyfile(maskPath, maskDst)
@@ -39,14 +40,12 @@ def mirror(maskPath, seriesName, chapNum, NAME1, NAME2):
 
 		copyfile(submask, submaskDst)
 
-for series in glob.glob(f"C:/Users/Pray/Desktop/dataset_manga/{NAME1}/masks/*"):
+for series in glob.glob(f"{DATASET_DIR}{NAME1}/masks/*"):
 	#print(series)
 	for chap in glob.glob(series + "/*"):
-		#print("\t"+chap)
+		#print("/t"+chap)
 		for im in glob.glob(chap + "/*.png"):
 			print(im)
 			mirror(im, os.path.basename(series), os.path.basename(chap),
 			       NAME1,
 			       NAME2)
-
-
