@@ -4,4 +4,5 @@ Mask_RCNN/logs/
 dataset_manga/train_original/
 dataset_manga/val_original/
 
+temp.py
 cloud_instructions.txt
