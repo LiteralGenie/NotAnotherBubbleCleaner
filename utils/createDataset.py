@@ -8,14 +8,14 @@ import os
 import random
 from shutil import copyfile
 
-NAME2= 'train'
+NAME2= 'val'
 NAME1= NAME2 + "_original"
 
 DATASET_DIR= "C:/Programming/Bubbles/dataset_manga/"
 
 ALT_EXTS=['.jpg', '.jpeg']
 
-RAND= False
+RAND= True
 PROB= 1
 LIMIT= 10
 
