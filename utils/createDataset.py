@@ -5,14 +5,19 @@ The series and chapter number folders within NAME1 are merged together, using th
 
 import glob
 import os
+import random
 from shutil import copyfile
 
-NAME1= 'train_original'
 NAME2= 'train'
+NAME1= NAME2 + "_original"
 
 DATASET_DIR= "C:/Programming/Bubbles/dataset_manga/"
 
 ALT_EXTS=['.jpg', '.jpeg']
+
+RAND= False
+PROB= 1
+LIMIT= 10
 
 def mirror(maskPath, seriesName, chapNum, NAME1, NAME2):
 	baseName= os.path.basename(os.path.splitext(maskPath)[0])
@@ -58,10 +63,13 @@ def mirror(maskPath, seriesName, chapNum, NAME1, NAME2):
 		copyfile(submask, submaskDst)
 
 for series in glob.glob(f"{DATASET_DIR}{NAME1}/masks/*"):
-	#print(series)
+	if RAND and random.random() > PROB: continue
+
 	for chap in glob.glob(series + "/*"):
-		#print("/t"+chap)
-		for im in glob.glob(chap + "/*.png"):
+		imList= glob.glob(chap + "/*.png")
+		if RAND: imList= random.sample(imList, min(len(imList), LIMIT))
+
+		for im in imList:
 			print(im)
 			mirror(im, os.path.basename(series), os.path.basename(chap),
 			       NAME1,
