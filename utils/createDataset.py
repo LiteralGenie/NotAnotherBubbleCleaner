@@ -12,6 +12,8 @@ NAME2= 'train'
 
 DATASET_DIR= "C:/Programming/Bubbles/dataset_manga/"
 
+ALT_EXTS=['.jpg', '.jpeg']
+
 def mirror(maskPath, seriesName, chapNum, NAME1, NAME2):
 	baseName= os.path.basename(os.path.splitext(maskPath)[0])
 	newBaseName= seriesName + "_" + chapNum + "_" + baseName
@@ -20,16 +22,26 @@ def mirror(maskPath, seriesName, chapNum, NAME1, NAME2):
 	maskDst= os.path.dirname(maskDst) + "/../../" + os.path.basename(maskDst).replace(baseName, newBaseName)
 	maskDst= os.path.abspath(maskDst)
 
-	rawPath= maskPath.replace('masks', 'images').replace('.png','.jpg')
+	rawPath= maskPath.replace('masks', 'images')
+	ext= '.png'
+	for newExt in ALT_EXTS:
+		if os.path.exists(rawPath):
+			break
+		else:
+			rawPath= rawPath[:-len(ext)] + newExt
+			ext = newExt
+	if not os.path.exists(rawPath):
+		raise FileNotFoundError(rawPath)
+
 	rawDst= rawPath.replace(NAME1, NAME2)
 	rawDst = os.path.dirname(rawDst) + "/../../" + os.path.basename(rawDst).replace(baseName, newBaseName)
 	rawDst = os.path.abspath(rawDst)
 
 	if not os.path.exists(os.path.dirname(maskDst)):
-		print('/tMaking ' + os.path.dirname(maskDst))
+		print('\tMaking ' + os.path.dirname(maskDst))
 		os.makedirs(os.path.dirname(maskDst))
 	if not os.path.exists(os.path.dirname(rawDst)):
-		print('/tMaking ' + os.path.dirname(rawDst))
+		print('\tMaking ' + os.path.dirname(rawDst))
 		os.makedirs(os.path.dirname(rawDst))
 
 	copyfile(maskPath, maskDst)
