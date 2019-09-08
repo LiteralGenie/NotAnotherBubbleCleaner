@@ -1,3 +1,7 @@
+"""
+Regenerate filled+separated masks in case the photoshop script fails.
+"""
+
 import sys
 import glob, os
 
@@ -8,7 +12,7 @@ from scipy.ndimage.measurements import label
 import cv2
 import numpy as np
 
-for chap in glob.glob('C:/Programming/Bubbles/dataset_manga/train_original/masks/asuka/*'):
+for chap in glob.glob('C:/Programming/Bubbles/dataset_manga/train_original/masks/asuka/7'):
 	for file in glob.glob(chap + "/*.png"):
 		print(file)
 		EXTENSION= ".png"

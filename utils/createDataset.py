@@ -1,3 +1,8 @@
+"""
+Copies images+masks from NAME1 to NAME2 (within DATASET_DIR) while 'flattening' the directory structure.
+The series and chapter number folders within NAME1 are merged together, using the folder names as prefixes for the new file in NAME2.
+"""
+
 import glob
 import os
 from shutil import copyfile
