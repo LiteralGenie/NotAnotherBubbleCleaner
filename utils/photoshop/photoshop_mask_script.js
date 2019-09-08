@@ -1,12 +1,18 @@
 var batPath = "C:/Programming/Bubbles/utils/photoshop/";
 var batPath = batPath + "photoshop_to_python.bat"; 
 
-
 var docName = app.activeDocument.name.replace(/\..+$/, ''); 
 var psdPath= String(app.activeDocument.path);
-savePath= psdPath.replace("images","masks") +  "/" + docName + ".png";
+var dirPath= psdPath.replace("images","masks");
+savePath= dirPath +  "/" + docName + ".png";
 //alert(savePath);
 
+var fold= new Folder(dirPath)
+if(!fold.exists)
+	{
+	fold.create();
+	//alert("create");
+	}
 
 app.doAction('dataset', 'data');
 sfwPNG24(File(savePath));  

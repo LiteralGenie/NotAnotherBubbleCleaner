@@ -12,7 +12,7 @@ from scipy.ndimage.measurements import label
 import cv2
 import numpy as np
 
-for chap in glob.glob('C:/Programming/Bubbles/dataset_manga/train_original/masks/asuka/7'):
+for chap in glob.glob('C:/Programming/Bubbles/dataset_manga/train_original/masks/amaku/*'):
 	for file in glob.glob(chap + "/*.png"):
 		print(file)
 		EXTENSION= ".png"
