@@ -43,6 +43,8 @@ def blend_transparent(face_img, overlay_t_img):
 
 # Loop thru folders (train / test / val)
 for dir in glob.glob(f'{DATASET_DIR}/*/'):
+	if 'archive' in os.path.basename(dir):
+		continue
 	# Loop thru mask files
 	for imPath in glob.glob(f"{dir}images/*"):
 		try:
