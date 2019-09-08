@@ -1,5 +1,6 @@
 .idea/
 venv/
+models/
 Mask_RCNN/logs/
 Mask_RCNN/pycocotools/
 dataset_manga/train_original/

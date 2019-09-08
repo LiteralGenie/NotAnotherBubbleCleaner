@@ -11,7 +11,7 @@ import numpy as np
 
 homeDir= "C:/Users/Pray/"
 
-file= sys.argv[1].replace('~', homeDir)
+file= sys.argv[1].replace('~', homeDir).replace('/c/', 'C:/')
 print(file)
 EXTENSION= ".png"
 
