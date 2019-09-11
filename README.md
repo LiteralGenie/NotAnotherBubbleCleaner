@@ -11,3 +11,5 @@ git clone https://github.com/LiteralGenie/MangaBubbles
 jupyter-notebook
 
 Open .../Bubbles/notebooks/train_gray.ipynb in jupyter
+
+Skip over training steps if not necessary
