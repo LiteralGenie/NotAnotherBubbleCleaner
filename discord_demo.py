@@ -214,8 +214,14 @@ async def on_message(message):
 		r['class_ids'] = np.delete(r['class_ids'], inds, 0)
 		r['rois'] = np.delete(r['rois'], inds, 0)
 
-		#im = visualize.display_instances(disp_image, r['rois'], r['masks'], r['class_ids'],
-		#	                             ['a'] * 123, r['scores'])
+		im = visualize.display_instances(disp_image, r['rois'], r['masks'], r['class_ids'],
+			                             ['a'] * 123, r['scores'])
+
+		print('save',np.max(im),im.shape)
+		from PIL import Image
+		img = Image.fromarray(im)
+		img.save("C:/Users/Pray/Pictures/test4.png")
+		await message.channel.send(file=discord.File('C:\\Users\\Pray\\Pictures\\test4.png'))
 
 		__, greyImage = cv2.threshold(original_image, 240, 1, cv2.THRESH_BINARY)
 
@@ -293,4 +299,4 @@ async def on_message(message):
 		return
 
 if __name__ == "__main__":
-    client.run("NTY0MzA5MjE1NjI4MjMwNjY4.XKooyg.cfw2BnfRX3piVow-_2MeXHo9dBg")
+    client.run("NTY0MzA5MjE1NjI4MjMwNjY4.XXkwVg.g4KUfUse8oHX3hkndQ1jgLXZ73c")
