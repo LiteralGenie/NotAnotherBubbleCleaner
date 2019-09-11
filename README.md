@@ -6,6 +6,8 @@ git clone https://github.com/LiteralGenie/Bubbles
 
 cd ./Bubbles/
 
+pip install -r requirements txt
+
 git clone https://github.com/LiteralGenie/MangaBubbles
 
 jupyter-notebook
