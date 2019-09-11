@@ -10,6 +10,6 @@ git clone https://github.com/LiteralGenie/MangaBubbles
 
 jupyter-notebook
 
-Open .../Bubbles/notebooks/train_gray.ipynb in jupyter
+Open .../Bubbles/notebooks/train_gray.ipynb in Jupyter to train
 
-Skip over training steps if not necessary
+Open .../Bubbles/notebooks/CleanBubbles.ipynb in Jupyter to test
