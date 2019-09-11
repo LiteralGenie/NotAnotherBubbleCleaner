@@ -22,4 +22,4 @@ Open .../Bubbles/notebooks/CleanBubbles.ipynb in Jupyter to test
 3. Identify connected components in thresholded image.
 4. Filter out small-sized components.
 5. Filter out components whose centroid does not lie within the region of any bubble mask.
-6. Fill holes in component areas and apply to original image.
+6. Fill holes in remaining component areas and overlay onto original image.
