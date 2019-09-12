@@ -1,7 +1,5 @@
 import os
 
-import png
-
 ROOT_DIR= os.path.abspath("../Mask_RCNN/")
 MODEL_PATH = os.path.abspath("F:/downloads_trash/mask_rcnn_bubbles_0010.h5")
 DATASET_DIR= os.path.abspath("../MangaBubbles/")
@@ -9,6 +7,9 @@ DATASET_DIR= os.path.abspath("../MangaBubbles/")
 print("Root:", ROOT_DIR)
 print("Model:", MODEL_PATH)
 print("Dataset:", DATASET_DIR)
+
+MIN_BLOB_SIZE= 8000
+MIN_BLOB_OVERLAP= 1000
 
 
 import sys
@@ -19,14 +20,20 @@ import copy
 import random
 import glob
 import scipy
+import PIL
+import png as PNG
+from pyupload.uploader import *
+
 
 sys.path.append(ROOT_DIR)  # To find local version of the library
 from mrcnn.config import Config
 from mrcnn import model as modellib, utils, visualize
 
+import warnings
+warnings.filterwarnings('ignore',category=FutureWarning)
 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow
-tensorflow.logging.set_verbosity(tensorflow.logging.ERROR)
 
 
 import matplotlib.pyplot as plt
@@ -88,7 +95,7 @@ def flatten(arrs):
 class InferenceConfig(Config):
 	BACKBONE = 'resnet50'
 
-	IMAGE_RESIZE_MODE = 'crop'
+	IMAGE_RESIZE_MODE = 'pad64'
 	IMAGE_MIN_DIM = 1728
 	IMAGE_MAX_DIM = 1728
 
@@ -137,6 +144,7 @@ async def on_ready():
 @client.event
 async def on_message(message):
 	if '??clean' in message.content:
+		message.channel.typing()
 		write = False
 
 		msg = None
@@ -183,6 +191,7 @@ async def on_message(message):
 			return
 
 		imPath= "C:/Users/Pray/Pictures/test2.png"
+
 		original_image = skimage.io.imread(imPath, as_gray=True)
 		if np.max(original_image) <= 1:
 			original_image = original_image * 255
@@ -195,10 +204,12 @@ async def on_message(message):
 		                                    mode=inference_config.IMAGE_RESIZE_MODE)[0]
 		disp_image = np.concatenate((original_image, original_image, original_image), axis=2)
 
-		# get_ax().imshow(disp_image.astype(np.uint8))
+		#get_ax().imshow(disp_image.astype(np.uint8))
+
+		print('max0',np.max(disp_image))
+		PIL.Image.fromarray(np.uint8(disp_image)).save(f"C:/Users/Pray/Pictures/0original.png")
 
 		results = model.detect([original_image], verbose=1)
-
 		r = copy.deepcopy(results[0])
 		print(r['scores'])
 
@@ -215,88 +226,146 @@ async def on_message(message):
 		r['rois'] = np.delete(r['rois'], inds, 0)
 
 		im = visualize.display_instances(disp_image, r['rois'], r['masks'], r['class_ids'],
-			                             ['a'] * 123, r['scores'])
-
-		print('save',np.max(im),im.shape)
-		from PIL import Image
-		img = Image.fromarray(im)
-		img.save("C:/Users/Pray/Pictures/test4.png")
-		await message.channel.send(file=discord.File('C:\\Users\\Pray\\Pictures\\test4.png'))
-
+		                                 ['a'] * 123, r['scores'], ax=get_ax())
+		print('max',np.max(im))
+		PIL.Image.fromarray(im).save("C:/Users/Pray/Pictures/1masked.png")
+		# Convert image to pure black and white
 		__, greyImage = cv2.threshold(original_image, 240, 1, cv2.THRESH_BINARY)
+		greyImage = (greyImage*255).astype(np.uint8)
 
-		# generate blobs and move to separate array
-		print(greyImage.dtype, np.max(greyImage))
-		greyImage = (greyImage * 255).astype(np.uint8)
-		print(greyImage.dtype, np.max(greyImage))
-		output = cv2.connectedComponentsWithStats(greyImage, 8, cv2.CV_16U)
-		print('h')
-		print(len(output[2]))
-		print(output[2][2])
-		adds = [x for x in range(len(output[2])) if output[2][x][4] > 8000]
-		# cents= [x for x in range(len(output[2])) if x in adds]
-		print('h')
-		# print(len(adds), len(cents))
+		# Identify connected white blobs
+		blobStats = cv2.connectedComponentsWithStats(greyImage, 8, cv2.CV_16U)
 
-		arr = np.zeros(original_image.shape)
-		print(arr.shape)
-		out = output[1][..., np.newaxis]
-		print(output[1].shape)
-		c = 0
-		for val in adds[1:]:
-			arr = np.concatenate((arr, out == val), axis=2)
-			c += 1
-		print('h')
+		# Identify larger blobs
+		blobLabels = [x for x in range(len(blobStats[2])) if blobStats[2][x][4] > MIN_BLOB_SIZE and x > 0]
 
-		greyImage = greyImage * 255
-		# get_ax().imshow(greyImage.astype(np.uint8), cmap='Greys_r')
+		# Move larger blobs to separate array
+		blobs = np.zeros(original_image.shape)
+		out = blobStats[1][..., np.newaxis]  # Labeled (flat) image
 
-		print('h')
-		arr = arr * 255
+		for label in blobLabels[1:]:
+			blobs = np.concatenate((blobs, out == label), axis=2)
+		blobs = blobs * 255
 
-		print('h')
-		print(np.max(arr))
-		print(arr.shape)
-		print('h')
-		arr2 = flatten(arr.astype(np.uint8))
-		disp_image = np.dstack((arr2, arr2, arr2))
-		# get_ax().imshow(disp_image.astype(np.uint8), cmap='Greys_r')
-		print(np.max(arr))
+		debug_list = [str(x) + ": " + str(blobStats[3][x].astype(np.uint16)) for x in blobLabels]
+		print(f"Selected blobs:\n{chr(10).join(debug_list)}")
+		#get_ax().imshow(greyImage.astype(np.uint8), cmap='Greys_r')
 
-		print(len(r['masks']))
-		# print(output[3])
-		okays = set([])
+		PIL.Image.fromarray(np.uint8(greyImage)).save(f"C:/Users/Pray/Pictures/2threshold.png")
+
+		# Display blobs post-size-filter for debug
+		arr = flatten(blobs.astype(np.uint8))
+		disp_arr = np.dstack((arr, arr, arr))
+		#get_ax().imshow(disp_arr, cmap='Greys_r')
+
+		PNG.from_array(np.uint8(arr), mode="L").save(f"C:/Users/Pray/Pictures/3thresholdbig.png")
+
+		# Loop through the list of (large) blobs
+		filteredBlobLabels = set([])
 		for msk in range(r['masks'].shape[2]):
 			mask = r['masks'][:, :, msk]
-			print(mask.shape)
-			# get_ax().imshow(mask.astype(np.uint8), cmap='Greys_r')
-			for i in range(len(adds)):
-				# print(output[3][adds[i]])
-				coords = output[3][adds[i]]
-				coords = coords.astype(np.uint16)
-				# print(coords)
-				if mask[coords[1]][coords[0]] and np.count_nonzero(
-						np.logical_and(mask, output[1][:, :] == adds[i])) > 1000:
-					print(coords)
-					okays.add(adds[i])
-		print(okays)
 
-		show = original_image
-		print(show.shape)
+			# Select blobs whose centroid falls within the mask and whose overlap with that mask is sufficient
+			for i in range(len(blobLabels)):
+				center = blobStats[3][blobLabels[i]]
+				center = center.astype(np.uint16)
 
-		for b in okays:
-			test = output[1][:, :] == b
-			test = test * 255
+				if mask[center[1]][center[0]] and np.count_nonzero(
+						np.logical_and(mask, blobStats[1][:, :] == blobLabels[i])) > MIN_BLOB_OVERLAP:
+					# print(f"Adding blob {blobLabels[i]} with center {center}")
+					filteredBlobLabels.add(blobLabels[i])
 
-			fill = scipy.ndimage.binary_fill_holes(test).astype(np.uint8) * 255
+		flat_mask = flatten(r['masks']) * 255
+		#get_ax().imshow(flat_mask.astype(np.uint8), cmap='Greys_r')
 
-			show = np.maximum(fill[:, :, np.newaxis], show)
-			disp = np.concatenate((show, show, show), axis=2)
-			#get_ax().imshow(disp.astype(np.uint8), cmap='Greys_r')
+		debug_list = [str(x) + ": " + str(blobStats[3][x]) for x in filteredBlobLabels]
+		print(f"Selected blobs:\n{chr(10).join(debug_list)}")
 
-		png.from_array(np.uint8(show), mode="L").save(f"C:/Users/Pray/Pictures/test3.png")
-		await message.channel.send(file=discord.File('C:\\Users\\Pray\\Pictures\\test3.png'))
+		print('max',np.max(flat_mask))
+		PIL.Image.fromarray(np.uint8(flat_mask)).save(f"C:/Users/Pray/Pictures/4masks.png")
+
+		# Debug filtered blobs
+
+		dotSize = 25
+		grey = 126
+
+		test = np.zeros([original_image.shape[0], original_image.shape[1], len(filteredBlobLabels)])
+
+		for i, b in enumerate(filteredBlobLabels):
+			test[:, :, i] = (blobStats[1][:, :] == b) * 255
+
+			center = blobStats[3][b].astype(np.uint16)
+			centerBlock = [center[0] - dotSize, center[0] + dotSize, center[1] - dotSize, center[1] + dotSize]
+
+			centerBlock[1] = np.minimum(centerBlock[1], test.shape[1])
+			centerBlock[3] = np.minimum(centerBlock[3], test.shape[0])
+			centerBlock[0] = np.maximum(centerBlock[0], 0)
+			centerBlock[2] = np.maximum(centerBlock[2], 0)
+
+			test[centerBlock[2]:centerBlock[3], centerBlock[0]:centerBlock[1], i] = grey
+		# get_ax().imshow(test[:,:,i].astype(np.uint8), cmap='Greys_r')
+		# print(np.max(test[:,:,i]), np.mean(test[:,:,i]))
+
+		flat = (flatten(test.astype(np.uint8)))
+		# flat= flat / np.max(flat) * 255
+		#get_ax().imshow(flat, cmap='Greys_r')
+
+		debug_list = [str(x) + ": " + str(blobStats[3][x]) for x in filteredBlobLabels]
+		print(f"Selected blobs:\n{chr(10).join(debug_list)}")
+
+		print('max', np.max(flat))
+		PIL.Image.fromarray(np.uint8(flat)).save(f"C:/Users/Pray/Pictures/5comps.png")
+
+		import png
+
+		cleaned_image = original_image
+		for b in filteredBlobLabels:
+			comp = blobStats[1][:, :] == b
+			comp = comp * 255
+			disp = np.dstack((comp, comp, comp))
+			# get_ax().imshow(disp.astype(np.uint8), cmap='Greys_r')
+
+			fill = scipy.ndimage.binary_fill_holes(comp).astype(np.uint8) * 255
+
+			cleaned_image = np.maximum(fill[:, :, np.newaxis], cleaned_image)
+
+		disp_image2 = np.concatenate((cleaned_image, cleaned_image, cleaned_image), axis=2)
+		#get_ax().imshow(disp_image2.astype(np.uint8), cmap='Greys_r')
+
+		print('max', np.max(cleaned_image))
+		print(cleaned_image.dtype)
+		print(cleaned_image.shape)
+		PIL.Image.fromarray(disp_image2.astype(np.uint8)).save(f"C:/Users/Pray/Pictures/6final.png")
+
+		# Debug Montage
+		border = 40
+		dims = [disp_image.shape[0], disp_image.shape[1], 3]
+		montage = np.ones([dims[0] * 2 + border, dims[1] * 2 + border, 3]) * 255
+
+		montage[0:dims[0], 0:dims[1], :] = disp_image
+		montage[dims[0] + border:dims[0] * 2 + border, 0:dims[1], :] = im
+
+		montage[0:dims[0], dims[1] + border:dims[1] * 2 + border, :] = disp_image2
+		montage[dims[0] + border:dims[0] * 2 + border, dims[1] + border:dims[1] * 2 + border, :] = np.dstack(
+			(flat, flat, flat))
+		#get_ax().imshow(montage.astype(np.uint8))
+
+		PIL.Image.fromarray(montage.astype(np.uint8)).save(f"C:/Users/Pray/Pictures/7montage.png")
+		PIL.Image.fromarray(montage[dims[0]+border:2*dims[0]+border,:,:].astype(np.uint8)).save(f"C:/Users/Pray/Pictures/7.5montage.png")
+
+		try:
+			await message.channel.send(content="Debug:",file=discord.File('C:\\Users\\Pray\\Pictures\\7.5montage.png'))
+		except discord.errors.HTTPException as e:
+			await message.channel.send("Result too large to upload directly. Please wait for 3rd party uplaod...")
+			link= CatboxUploader("C:/Users/Pray/Pictures/7montage.png").execute()
+			await message.channel.send(link)
+		try:
+			await message.channel.send(file=discord.File('C:\\Users\\Pray\\Pictures\\6final.png'))
+		except discord.errors.HTTPException as e:
+			await message.channel.send("Result too large to upload directly. Please wait for 3rd party uplaod...")
+			link= CatboxUploader("C:/Users/Pray/Pictures/6final.png").execute()
+			await message.channel.send(link)
 		return
 
 if __name__ == "__main__":
-    client.run("NTY0MzA5MjE1NjI4MjMwNjY4.XXkwVg.g4KUfUse8oHX3hkndQ1jgLXZ73c")
+    client.run("NTY0MzA5MjE1NjI4MjMwNjY4.XXmMSg.aDHO154tjlojn9f76dzWruGq1zc")
