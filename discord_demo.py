@@ -1,8 +1,13 @@
+import json
 import os
 
-ROOT_DIR= os.path.abspath("../Mask_RCNN/")
+ROOT_DIR= os.path.abspath("./Mask_RCNN/")
 MODEL_PATH = os.path.abspath("F:/downloads_trash/mask_rcnn_bubbles_0010.h5")
-DATASET_DIR= os.path.abspath("../MangaBubbles/")
+DATASET_DIR = os.path.abspath("./MangaBubbles/")
+
+with open(os.path.abspath("./utils/bot_config.json")) as config_file:
+	BOT_CONFIG= json.load(config_file)
+	DISCORD_KEY= BOT_CONFIG['globals']['DISCORD_KEY']
 
 print("Root:", ROOT_DIR)
 print("Model:", MODEL_PATH)
@@ -368,4 +373,4 @@ async def on_message(message):
 		return
 
 if __name__ == "__main__":
-    client.run("NTY0MzA5MjE1NjI4MjMwNjY4.XXmMSg.aDHO154tjlojn9f76dzWruGq1zc")
+    client.run(DISCORD_KEY)

@@ -11,6 +11,6 @@ dataset_manga/archive/
 
 temp.py
 cloud_instructions.txt
-
+utils/bot_config.json
 
 !models/gitignore
