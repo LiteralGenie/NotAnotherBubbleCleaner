@@ -8,16 +8,16 @@ import os
 import random
 from shutil import copyfile
 
-NAME2= 'val'
+NAME2= 'train'
 NAME1= NAME2 + "_original"
 
-DATASET_DIR= "C:/Programming/Bubbles/dataset_manga/"
+DATASET_DIR= "C:/Programming/Bubbles/MangaBubbles/"
 
 ALT_EXTS=['.jpg', '.jpeg']
 
-RAND= True
+RAND= False
 PROB= 1
-LIMIT= 10
+LIMIT= 15
 
 def mirror(maskPath, seriesName, chapNum, NAME1, NAME2):
 	baseName= os.path.basename(os.path.splitext(maskPath)[0])
@@ -52,6 +52,7 @@ def mirror(maskPath, seriesName, chapNum, NAME1, NAME2):
 	copyfile(maskPath, maskDst)
 	copyfile(rawPath, rawDst)
 
+	
 	for submask in glob.glob(os.path.splitext(maskPath)[0] + "/*.png"):
 		submaskDst= submask.replace(NAME1, NAME2)
 		submaskDst = os.path.dirname(submaskDst) + "/../../../" + os.path.basename(os.path.dirname(submaskDst)).replace(baseName,newBaseName) + "/" + os.path.basename(submaskDst)
@@ -59,7 +60,7 @@ def mirror(maskPath, seriesName, chapNum, NAME1, NAME2):
 
 		if not os.path.exists(os.path.dirname(submaskDst)):
 			os.makedirs(os.path.dirname(submaskDst))
-
+		print(f'\t{submaskDst}')
 		copyfile(submask, submaskDst)
 
 for series in glob.glob(f"{DATASET_DIR}{NAME1}/masks/*"):

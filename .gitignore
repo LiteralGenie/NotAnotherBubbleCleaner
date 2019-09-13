@@ -3,11 +3,6 @@ venv/
 models/
 Mask_RCNN/logs/
 Mask_RCNN/pycocotools/
-dataset_manga/
-dataset_manga/train_original/
-dataset_manga/val_original/
-dataset_manga/preview/
-dataset_manga/archive/
 
 temp.py
 cloud_instructions.txt

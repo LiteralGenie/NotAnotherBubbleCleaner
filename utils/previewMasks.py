@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import cv2
 import numpy as np
 
-DATASET_DIR= os.path.abspath("../dataset_manga/")
+DATASET_DIR= os.path.abspath("../MangaBubbles/")
 #EXTENSION= ".png"
 OUT_DIR= DATASET_DIR + "/preview/"
 

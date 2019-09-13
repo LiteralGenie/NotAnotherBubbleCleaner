@@ -2,7 +2,7 @@ import json
 import os
 
 ROOT_DIR= os.path.abspath("./Mask_RCNN/")
-MODEL_PATH = os.path.abspath("F:/downloads_trash/mask_rcnn_bubbles_0010.h5")
+MODEL_PATH = os.path.abspath("F:/downloads_trash/models/square/mask_rcnn_bubbles_0014.h5")
 DATASET_DIR = os.path.abspath("./MangaBubbles/")
 
 with open(os.path.abspath("./utils/bot_config.json")) as config_file:
@@ -94,6 +94,12 @@ def flatten(arrs):
 		x[:, :] += arrs[:, :, i]
 	return x
 
+
+
+def depad(original_image, padding):
+     return original_image[(None if padding[0][0]==0 else padding[0][0]):(None if padding[0][1]==0 else -padding[0][1]),
+                    (None if padding[1][0]==0 else padding[1][0]):(None if padding[1][1]==0 else -padding[1][1]), ...]
+
 # ==============================================================================
 
 
@@ -149,6 +155,7 @@ async def on_ready():
 @client.event
 async def on_message(message):
 	if '??clean' in message.content:
+		await message.channel.send("Reading image...")
 		message.channel.typing()
 		write = False
 
@@ -203,10 +210,8 @@ async def on_message(message):
 		if len(original_image.shape) == 2:
 			original_image = original_image[..., np.newaxis]
 
-		original_image = utils.resize_image(original_image, min_dim=inference_config.IMAGE_MIN_DIM,
-		                                    max_dim=inference_config.IMAGE_MAX_DIM,
-		                                    min_scale=inference_config.IMAGE_MIN_SCALE,
-		                                    mode=inference_config.IMAGE_RESIZE_MODE)[0]
+		original_image, window, scale, padding, crop = utils.resize_image(original_image, min_dim=inference_config.IMAGE_MIN_DIM, max_dim=inference_config.IMAGE_MAX_DIM, min_scale=inference_config.IMAGE_MIN_SCALE, mode=inference_config.IMAGE_RESIZE_MODE)
+
 		disp_image = np.concatenate((original_image, original_image, original_image), axis=2)
 
 		#get_ax().imshow(disp_image.astype(np.uint8))
@@ -214,6 +219,7 @@ async def on_message(message):
 		print('max0',np.max(disp_image))
 		PIL.Image.fromarray(np.uint8(disp_image)).save(f"C:/Users/Pray/Pictures/0original.png")
 
+		await message.channel.send("Analyz9ing image...")
 		results = model.detect([original_image], verbose=1)
 		r = copy.deepcopy(results[0])
 		print(r['scores'])
@@ -234,9 +240,14 @@ async def on_message(message):
 		                                 ['a'] * 123, r['scores'], ax=get_ax())
 		print('max',np.max(im))
 		PIL.Image.fromarray(im).save("C:/Users/Pray/Pictures/1masked.png")
+		start_time = time.time()
+
+
+		await message.channel.send("Postprocessing...")
+
 		# Convert image to pure black and white
 		__, greyImage = cv2.threshold(original_image, 240, 1, cv2.THRESH_BINARY)
-		greyImage = (greyImage*255).astype(np.uint8)
+		greyImage = (greyImage * 255).astype(np.uint8)
 
 		# Identify connected white blobs
 		blobStats = cv2.connectedComponentsWithStats(greyImage, 8, cv2.CV_16U)
@@ -245,18 +256,22 @@ async def on_message(message):
 		blobLabels = [x for x in range(len(blobStats[2])) if blobStats[2][x][4] > MIN_BLOB_SIZE and x > 0]
 
 		# Move larger blobs to separate array
-		blobs = np.zeros(original_image.shape)
+		blobs = np.zeros([original_image.shape[0], original_image.shape[1], len(blobLabels)])
 		out = blobStats[1][..., np.newaxis]  # Labeled (flat) image
 
-		for label in blobLabels[1:]:
-			blobs = np.concatenate((blobs, out == label), axis=2)
+		for i, label in enumerate(blobLabels[0:]):
+			blobs[:, :, i] = (out == label)[:, :, 0]
 		blobs = blobs * 255
+		print("--- %s seconds ---" % (time.time() - start_time))
 
-		debug_list = [str(x) + ": " + str(blobStats[3][x].astype(np.uint16)) for x in blobLabels]
+		debug_list = [str(x) + ": " + str(blobStats[3][x].astype(np.uint16)) + " - " + str(blobStats[2][x][4]) for x in
+		              blobLabels]
 		print(f"Selected blobs:\n{chr(10).join(debug_list)}")
-		#get_ax().imshow(greyImage.astype(np.uint8), cmap='Greys_r')
+		get_ax().imshow(greyImage.astype(np.uint8), cmap='Greys_r')
 
 		PIL.Image.fromarray(np.uint8(greyImage)).save(f"C:/Users/Pray/Pictures/2threshold.png")
+
+		print("--- %s seconds ---" % (time.time() - start_time))
 
 		# Display blobs post-size-filter for debug
 		arr = flatten(blobs.astype(np.uint8))
@@ -342,33 +357,50 @@ async def on_message(message):
 		print(cleaned_image.shape)
 		PIL.Image.fromarray(disp_image2.astype(np.uint8)).save(f"C:/Users/Pray/Pictures/6final.png")
 
+
+
+		print(original_image.shape)
+		test = depad(cleaned_image, padding=padding)
+		print(test.shape, np.max(test))
+
+		test = np.concatenate((test, test, test), axis=2)
+		get_ax().imshow(test, cmap='Greys_r')
+
+		start_time = time.time()
+
+		dmask = visualize.display_instances(disp_arr, r['rois'], r['masks'], r['class_ids'],
+		                                    ['a'] * 123, r['scores'], hide=True)
+
 		# Debug Montage
 		border = 40
-		dims = [disp_image.shape[0], disp_image.shape[1], 3]
+		dims = [depad(disp_image, padding).shape[0], depad(disp_image, padding).shape[1], 3]
 		montage = np.ones([dims[0] * 2 + border, dims[1] * 2 + border, 3]) * 255
 
-		montage[0:dims[0], 0:dims[1], :] = disp_image
-		montage[dims[0] + border:dims[0] * 2 + border, 0:dims[1], :] = im
+		montage[0:dims[0], 0:dims[1], :] = depad(disp_image, padding)
+		montage[dims[0] + border:dims[0] * 2 + border, 0:dims[1], :] = depad(dmask, padding)  # im
 
-		montage[0:dims[0], dims[1] + border:dims[1] * 2 + border, :] = disp_image2
+		montage[0:dims[0], dims[1] + border:dims[1] * 2 + border, :] = depad(disp_image2, padding)
 		montage[dims[0] + border:dims[0] * 2 + border, dims[1] + border:dims[1] * 2 + border, :] = np.dstack(
-			(flat, flat, flat))
-		#get_ax().imshow(montage.astype(np.uint8))
+			(depad(flat, padding), depad(flat, padding), depad(flat, padding)))
+
+		get_ax().imshow(montage.astype(np.uint8))
+
+		print("--- %s seconds ---" % (time.time() - start_time))
 
 		PIL.Image.fromarray(montage.astype(np.uint8)).save(f"C:/Users/Pray/Pictures/7montage.png")
-		PIL.Image.fromarray(montage[dims[0]+border:2*dims[0]+border,:,:].astype(np.uint8)).save(f"C:/Users/Pray/Pictures/7.5montage.png")
+		PIL.Image.fromarray(test.astype(np.uint8)).save(f"C:/Users/Pray/Pictures/7.5clean.png")
 
-		try:
-			await message.channel.send(content="Debug:",file=discord.File('C:\\Users\\Pray\\Pictures\\7.5montage.png'))
-		except discord.errors.HTTPException as e:
-			await message.channel.send("Result too large to upload directly. Please wait for 3rd party uplaod...")
-			link= CatboxUploader("C:/Users/Pray/Pictures/7montage.png").execute()
-			await message.channel.send(link)
 		try:
 			await message.channel.send(file=discord.File('C:\\Users\\Pray\\Pictures\\6final.png'))
 		except discord.errors.HTTPException as e:
 			await message.channel.send("Result too large to upload directly. Please wait for 3rd party uplaod...")
-			link= CatboxUploader("C:/Users/Pray/Pictures/6final.png").execute()
+			link= CatboxUploader("C:/Users/Pray/Pictures/7.5clean.png").execute()
+			await message.channel.send(link)
+		try:
+			await message.channel.send(content="Debug:",file=discord.File('C:\\Users\\Pray\\Pictures\\7montage.png'))
+		except discord.errors.HTTPException as e:
+			await message.channel.send("Result too large to upload directly. Please wait for 3rd party uplaod...")
+			link= CatboxUploader("C:/Users/Pray/Pictures/7montage.png").execute()
 			await message.channel.send(link)
 		return
 

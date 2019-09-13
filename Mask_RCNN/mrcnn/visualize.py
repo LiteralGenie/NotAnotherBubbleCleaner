@@ -84,7 +84,7 @@ def display_instances(image, boxes, masks, class_ids, class_names,
                       scores=None, title="",
                       figsize=(16, 16), ax=None,
                       show_mask=True, show_bbox=True,
-                      colors=None, captions=None):
+                      colors=None, captions=None, hide=False):
     """
     boxes: [num_instance, (y1, x1, y2, x2, class_id)] in image coordinates.
     masks: [height, width, num_instances]
@@ -106,7 +106,7 @@ def display_instances(image, boxes, masks, class_ids, class_names,
 
     # If no axis is passed, create one and automatically call show()
     auto_show = False
-    if not ax:
+    if not ax and not hide:
         _, ax = plt.subplots(1, figsize=figsize)
         auto_show = True
 
@@ -115,10 +115,11 @@ def display_instances(image, boxes, masks, class_ids, class_names,
 
     # Show area outside image boundaries.
     height, width = image.shape[:2]
-    ax.set_ylim(height + 10, -10)
-    ax.set_xlim(-10, width + 10)
-    ax.axis('off')
-    ax.set_title(title)
+    if not hide:
+        ax.set_ylim(height + 10, -10)
+        ax.set_xlim(-10, width + 10)
+        ax.axis('off')
+        ax.set_title(title)
 
     masked_image = image.astype(np.uint32).copy()
     for i in range(N):
@@ -133,7 +134,8 @@ def display_instances(image, boxes, masks, class_ids, class_names,
             p = patches.Rectangle((x1, y1), x2 - x1, y2 - y1, linewidth=2,
                                 alpha=0.7, linestyle="dashed",
                                 edgecolor=color, facecolor='none')
-            ax.add_patch(p)
+            if not hide:
+                ax.add_patch(p)
 
         # Label
         if not captions:
@@ -143,7 +145,8 @@ def display_instances(image, boxes, masks, class_ids, class_names,
             caption = "{} {:.3f}".format(label, score) if score else label
         else:
             caption = captions[i]
-        ax.text(x1, y1 + 8, caption,
+        if not hide:
+            ax.text(x1, y1 + 8, caption,
                 color='w', size=11, backgroundcolor="none")
 
         # Mask
@@ -161,9 +164,11 @@ def display_instances(image, boxes, masks, class_ids, class_names,
             # Subtract the padding and flip (y, x) to (x, y)
             verts = np.fliplr(verts) - 1
             p = Polygon(verts, facecolor="none", edgecolor=color)
-            ax.add_patch(p)
-    ax.imshow(masked_image.astype(np.uint8))
-    if auto_show:
+            if not hide:
+                ax.add_patch(p)
+    if not hide:
+        ax.imshow(masked_image.astype(np.uint8))
+    if auto_show and not hide:
         plt.show()
 
     return masked_image.astype(np.uint8)
