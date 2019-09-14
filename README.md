@@ -25,4 +25,6 @@ Open .../Bubbles/notebooks/CleanBubbles.ipynb in Jupyter to test
 4. Filter out small-sized components.
 5. Filter out components whose centroid does not lie within the region of any bubble mask.
 6. Filter out components whose overlap with the mask containing its centroid is infufficient.
-7. Fill holes in remaining component areas and overlay onto original image.
+7. Fill holes in remaining component areas.
+8. Shrink edges of component areas (to prevent eating away at bubble outline).
+9. Overlay whited-out component areas onto original image.
