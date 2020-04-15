@@ -1,3 +1,6 @@
+Release build: https://github.com/LiteralGenie/NotAnotherBubbleCleaner
+
+
 # Setup:
 
 cd {Directory to download in.}
