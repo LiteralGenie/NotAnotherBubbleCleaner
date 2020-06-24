@@ -62,7 +62,7 @@ Bottom-right: Regions to be whited-out, derived from thresholded image + mask ba
   - 50+ validation images from 5 different series.
   - All images are in grayscale.
   
-- Training code: https://github.com/LiteralGenie/Bubbles/blob/master/notebooks/train_gray.ipynb
+- Training code: https://github.com/LiteralGenie/NotAnotherBubbleCleaner/blob/master/notebooks/train_gray.ipynb
   - Trained using random upscaled, unpadded 1728x1728 crops passed to a ResNet-50 based architecture.
   - Trained using Tesla V100 on [Google Compute Engine](https://console.cloud.google.com/)
 	 - Total training time was roughly 4 hours (10 epochs * 1000 steps each)
@@ -75,8 +75,8 @@ To modify and recompile the executable (to use tensorflow-gpu or whatever):
 1. Clone this repo https://github.com/LiteralGenie/NotAnotherBubbleCleaner
 2. Clone the dataset https://github.com/LiteralGenie/MangaBubbles
 3. Open in jupyter:
-   - `.../Bubbles/notebooks/train_gray.ipynb` to train
-   - `.../Bubbles/notebooks/CleanBubbles.ipynb` to test
+   - `.../notebooks/train_gray.ipynb` to train
+   - `.../notebooks/CleanBubbles.ipynb` to test
 4. pyinstaller main/main.py --hiddenimport keras --hiddenimport tensorflow
 5. Add mrcnn from [Mask-RCNN](https://github.com/matterport/Mask_RCNN) to dist/main/
 
