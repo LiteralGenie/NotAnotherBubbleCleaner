@@ -72,7 +72,7 @@ Bottom-right: Regions to be whited-out, derived from thresholded image + mask ba
 
 To modify and recompile the executable (to use tensorflow-gpu or whatever):
 
-1. Clone this repo https://github.com/LiteralGenie/Bubbles
+1. Clone this repo https://github.com/LiteralGenie/NotAnotherBubbleCleaner
 2. Clone the dataset https://github.com/LiteralGenie/MangaBubbles
 3. Open in jupyter:
    - `.../Bubbles/notebooks/train_gray.ipynb` to train
