@@ -57,7 +57,7 @@ Bottom-right: Regions to be whited-out, derived from thresholded image + mask ba
 
 ## Training Details
 
-- Dataset: https://github.com/LiteralGenie/MangaBubbles
+- Dataset:
   - 600 training images from 30 different series.
   - 50+ validation images from 5 different series.
   - All images are in grayscale.
@@ -73,7 +73,7 @@ Bottom-right: Regions to be whited-out, derived from thresholded image + mask ba
 To modify and recompile the executable (to use tensorflow-gpu or whatever):
 
 1. Clone this repo https://github.com/LiteralGenie/NotAnotherBubbleCleaner
-2. Clone the dataset https://github.com/LiteralGenie/MangaBubbles
+2. Generate dataset
 3. Open in jupyter:
    - `.../notebooks/train_gray.ipynb` to train
    - `.../notebooks/CleanBubbles.ipynb` to test
