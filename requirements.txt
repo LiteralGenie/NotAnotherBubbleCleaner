@@ -3,11 +3,12 @@ scipy
 Pillow
 cython
 matplotlib
-scikit-image
-tensorflow-gpu
-keras
+scikit-image==0.16.1
+tensorflow-gpu==1.15.0
+keras==2.0.8
 opencv-python
 h5py
 imgaug
 IPython[all]
 opencv-python
+pypng

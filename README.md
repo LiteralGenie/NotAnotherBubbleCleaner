@@ -4,7 +4,6 @@
 - [Setup instructions](#setup)
 - [Samples](#Samples)
 - [Training Details](#training-details)
-- [Recompiling instructions](#build-instructions)
 
 ## Description
 
@@ -22,6 +21,8 @@ Cleaning Process:
 7. Fill holes in remaining components
 8. Shrink components (to prevent eating away at bubble outline).
 9. Overlay whited-out components with original image.
+
+Please refer to [this notebook](https://github.com/LiteralGenie/NotAnotherBubbleCleaner/blob/master/notebooks/clean_demo.ipynb) for further details.  
 
 ## Setup
 
@@ -52,7 +53,7 @@ Bottom-right: Regions to be whited-out, derived from thresholded image + mask ba
 ![](https://github.com/LiteralGenie/NotAnotherBubbleCleaner/blob/master/demo/debug-asuka_2_01_0123.png)
 ![](https://github.com/LiteralGenie/NotAnotherBubbleCleaner/blob/master/demo/debug-amaku_2_010.png)
 ![](https://github.com/LiteralGenie/NotAnotherBubbleCleaner/blob/master/demo/debug-caterpillar_92_0044.png)
-
+![](https://files.catbox.moe/ta2n7g.png)
 
 
 ## Training Details
@@ -62,23 +63,10 @@ Bottom-right: Regions to be whited-out, derived from thresholded image + mask ba
   - 50+ validation images from 5 different series.
   - All images are in grayscale.
   
-- Training code: https://github.com/LiteralGenie/NotAnotherBubbleCleaner/blob/master/notebooks/train_gray.ipynb
+- Training code: https://github.com/LiteralGenie/NotAnotherBubbleCleaner/blob/master/notebooks/train.ipynb
   - Trained using random upscaled, unpadded 1728x1728 crops passed to a ResNet-50 based architecture.
   - Trained using Tesla V100 on [Google Compute Engine](https://console.cloud.google.com/)
 	 - Total training time was roughly 4 hours (10 epochs * 1000 steps each)
-
-
-## Build Instructions
-
-To modify and recompile the executable (to use tensorflow-gpu or whatever):
-
-1. Clone this repo https://github.com/LiteralGenie/NotAnotherBubbleCleaner
-2. Generate dataset
-3. Open in jupyter:
-   - `.../notebooks/train_gray.ipynb` to train
-   - `.../notebooks/CleanBubbles.ipynb` to test
-4. pyinstaller main/main.py --hiddenimport keras --hiddenimport tensorflow
-5. Add mrcnn from [Mask-RCNN](https://github.com/matterport/Mask_RCNN) to dist/main/
 
 ---
 
